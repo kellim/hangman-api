@@ -16,7 +16,7 @@ class Game(ndb.Model):
     secret_word = ndb.StringProperty(required=True)
     difficulty = ndb.IntegerProperty(required=True)
     guessed_word = ndb.StringProperty(required=True)
-    missed_letters = ndb.StringProperty(repeated=True)
+    missed_letters = ndb.StringProperty(required=True, default='')
     misses_left = ndb.IntegerProperty(required=True, default=6)
     game_over = ndb.BooleanProperty(required=True, default=False)
     user = ndb.KeyProperty(required=True, kind='User')
@@ -28,9 +28,10 @@ class Game(ndb.Model):
         secret_word = random.choice(Game.generate_word_list())
         game = Game(user=user,
                     allowed_misses=allowed_misses,
-                    secret_word= secret_word,
+                    secret_word=secret_word,
                     difficulty=Game.check_word_difficulty(secret_word),
                     guessed_word=("-" * len(secret_word)),
+                    missed_letters='',
                     misses_left=allowed_misses,
                     game_over=False)
         game.put()
@@ -47,6 +48,11 @@ class Game(ndb.Model):
         form.game_over = self.game_over
         form.message = message
         return form
+
+    def end_game(self, won=False):
+        self.game_over = True
+        self.put()
+        # TODO: ADD CODE FOR SCORING
 
     @staticmethod
     def generate_word_list():
@@ -73,15 +79,21 @@ class Game(ndb.Model):
                 difficulty += 2
         return difficulty
 
+
 class GameForm(messages.Message):
     """GameForm for outbound game state information"""
     urlsafe_key = messages.StringField(1, required=True)
     misses_left = messages.IntegerField(2, required=True)
-    missed_letters = messages.StringField(3, repeated=True)
+    missed_letters = messages.StringField(3, required=True)
     guessed_word = messages.StringField(4, required=True)
     game_over = messages.BooleanField(5, required=True)
     message = messages.StringField(6, required=True)
     user_name = messages.StringField(7, required=True)
+
+
+class MakeMoveForm(messages.Message):
+    """Used to make a move in an existing game"""
+    guess = messages.StringField(1, required=True)
 
 
 class NewGameForm(messages.Message):
