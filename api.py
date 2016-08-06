@@ -16,6 +16,8 @@ NEW_GAME_REQUEST = endpoints.ResourceContainer(NewGameForm)
 MAKE_MOVE_REQUEST = endpoints.ResourceContainer(
     MakeMoveForm,
     urlsafe_game_key=messages.StringField(1))
+CANCEL_GAME_REQUEST = endpoints.ResourceContainer(
+    urlsafe_game_key=messages.StringField(1))
 
 
 @endpoints.api(name='hangman', version='v1')
@@ -141,5 +143,22 @@ class HangmanApi(remote.Service):
                 'A User with that name does not exist!')
         games = Game.query(Game.user == user.key, Game.game_over == False)
         return UserGameForms(items=[game.to_form('Time to take a turn!') for game in games])
+
+    @endpoints.method(request_message=CANCEL_GAME_REQUEST,
+                      response_message=StringMessage,
+                      path='game/cancel/{urlsafe_game_key}',
+                      name='cancel_game',
+                      http_method='PUT')
+    def cancel_game(self, request):
+        game_to_cancel = get_by_urlsafe(request.urlsafe_game_key, Game)
+        if not game_to_cancel:
+            raise endpoints.NotFoundException(
+                'That game does not exist!'
+            )
+        if game_to_cancel.game_over:
+            return StringMessage(message='Failed to cancel: Game already over!')
+        else:
+            game_to_cancel.key.delete()
+            return StringMessage(message='Game has been cancelled!')
 
 api = endpoints.api_server([HangmanApi])
