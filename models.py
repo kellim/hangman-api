@@ -55,7 +55,8 @@ class Game(ndb.Model):
         self.put()
         # Add the game to the score 'board'
         score = Score(user=self.user, date=date.today(), won=won,
-                      misses=self.allowed_misses - self.misses_left)
+                      misses=self.allowed_misses - self.misses_left,
+                      difficulty=self.difficulty)
         score.put()
 
     @staticmethod
@@ -89,12 +90,14 @@ class Score(ndb.Model):
     date = ndb.DateProperty(required=True)
     won = ndb.BooleanProperty(required=True)
     misses = ndb.IntegerProperty(required=True)
+    difficulty = ndb.IntegerProperty(required=True)
 
     def to_form(self):
         return ScoreForm(user_name=self.user.get().name,
                          won=self.won,
                          date=str(self.date),
-                         misses=self.misses)
+                         misses=self.misses,
+                         difficulty=self.difficulty)
 
 
 class GameForm(messages.Message):
@@ -118,6 +121,7 @@ class ScoreForm(messages.Message):
     date = messages.StringField(2, required=True)
     won = messages.BooleanField(3, required=True)
     misses = messages.IntegerField(4, required=True)
+    difficulty = messages.IntegerField(5, required=True)
 
 
 class NewGameForm(messages.Message):
