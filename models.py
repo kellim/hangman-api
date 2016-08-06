@@ -1,5 +1,6 @@
 import csv
 import random
+from datetime import date
 from protorpc import messages
 from google.appengine.ext import ndb
 
@@ -52,7 +53,10 @@ class Game(ndb.Model):
     def end_game(self, won=False):
         self.game_over = True
         self.put()
-        # TODO: ADD CODE FOR SCORING
+        # Add the game to the score 'board'
+        score = Score(user=self.user, date=date.today(), won=won,
+                      misses=self.allowed_misses - self.misses_left)
+        score.put()
 
     @staticmethod
     def generate_word_list():
@@ -80,6 +84,19 @@ class Game(ndb.Model):
         return difficulty
 
 
+class Score(ndb.Model):
+    user = ndb.KeyProperty(required=True, kind='User')
+    date = ndb.DateProperty(required=True)
+    won = ndb.BooleanProperty(required=True)
+    misses = ndb.IntegerProperty(required=True)
+
+    def to_form(self):
+        return ScoreForm(user_name=self.user.get().name,
+                         won=self.won,
+                         date=str(self.date),
+                         misses=self.misses)
+
+
 class GameForm(messages.Message):
     """GameForm for outbound game state information"""
     urlsafe_key = messages.StringField(1, required=True)
@@ -96,10 +113,27 @@ class MakeMoveForm(messages.Message):
     guess = messages.StringField(1, required=True)
 
 
+class ScoreForm(messages.Message):
+    user_name = messages.StringField(1, required=True)
+    date = messages.StringField(2, required=True)
+    won = messages.BooleanField(3, required=True)
+    misses = messages.IntegerField(4, required=True)
+
+
 class NewGameForm(messages.Message):
     """Used to create a new game"""
     user_name = messages.StringField(1, required=True)
     allowed_misses = messages.IntegerField(2, default=6)
+
+
+class ScoreForms(messages.Message):
+    """Return multiple ScoreForms"""
+    items = messages.MessageField(ScoreForm, 1, repeated=True)
+
+
+class UserGameForms(messages.Message):
+    """Returns multiple GameForms for a specific user"""
+    items = messages.MessageField(GameForm, 1, repeated=True)
 
 
 class StringMessage(messages.Message):

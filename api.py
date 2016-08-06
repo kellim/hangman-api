@@ -2,8 +2,9 @@ import logging
 import endpoints
 from protorpc import remote, messages
 
-from models import User, Game
-from models import StringMessage, NewGameForm, GameForm, MakeMoveForm
+from models import User, Game, Score
+from models import (StringMessage, NewGameForm, GameForm, MakeMoveForm,
+                    ScoreForm, ScoreForms, UserGameForms)
 from utils import get_by_urlsafe
 
 
@@ -64,7 +65,7 @@ class HangmanApi(remote.Service):
         game = get_by_urlsafe(request.urlsafe_game_key, Game)
         if game:
             if not game.game_over:
-                return game.to_form('It\'s time to take a turn!')
+                return game.to_form('Time to take a turn!')
             else:
                 return game.to_form('The game is over!')
         else:
@@ -112,5 +113,33 @@ class HangmanApi(remote.Service):
                 message += ' You lost!'
             game.put()
             return game.to_form(message)
+
+    @endpoints.method(request_message=USER_REQUEST,
+                      response_message=ScoreForms,
+                      path='scores/user/{user_name}',
+                      name='get_user_scores',
+                      http_method='GET')
+    def get_user_scores(self, request):
+        """Returns all of an individual user's scores"""
+        user = User.query(User.name == request.user_name).get()
+        if not user:
+            raise endpoints.NotFoundException(
+                'A User with that name does not exist!')
+        scores = Score.query(Score.user == user.key)
+        return ScoreForms(items=[score.to_form() for score in scores])
+
+    @endpoints.method(request_message=USER_REQUEST,
+                      response_message=UserGameForms,
+                      path='games/active/user/{user_name}',
+                      name='get_user_games',
+                      http_method='GET')
+    def get_user_games(self, request):
+        """Returns all of an individual user's active games"""
+        user = User.query(User.name == request.user_name).get()
+        if not user:
+            raise endpoints.NotFoundException(
+                'A User with that name does not exist!')
+        games = Game.query(Game.user == user.key, Game.game_over == False)
+        return UserGameForms(items=[game.to_form('Time to take a turn!') for game in games])
 
 api = endpoints.api_server([HangmanApi])
