@@ -139,7 +139,6 @@ class UserGameForms(messages.Message):
     """Returns multiple GameForms for a specific user"""
     items = messages.MessageField(GameForm, 1, repeated=True)
 
-
 class StringMessage(messages.Message):
     """StringMessage-- outbound (single) string message"""
     message = messages.StringField(1, required=True)

@@ -18,7 +18,8 @@ MAKE_MOVE_REQUEST = endpoints.ResourceContainer(
     urlsafe_game_key=messages.StringField(1))
 CANCEL_GAME_REQUEST = endpoints.ResourceContainer(
     urlsafe_game_key=messages.StringField(1))
-
+HIGH_SCORES_REQUEST = endpoints.ResourceContainer(
+    number_of_results=messages.IntegerField(1))
 
 @endpoints.api(name='hangman', version='v1')
 class HangmanApi(remote.Service):
@@ -128,6 +129,19 @@ class HangmanApi(remote.Service):
             raise endpoints.NotFoundException(
                 'A User with that name does not exist!')
         scores = Score.query(Score.user == user.key)
+        return ScoreForms(items=[score.to_form() for score in scores])
+
+    @endpoints.method(request_message= HIGH_SCORES_REQUEST,
+                      response_message=ScoreForms,
+                      path='scores/high',
+                      name='get_high_scores',
+                      http_method='GET')
+    def get_high_scores(self, request):
+        """Returns a list of high scores of games that were won"""
+        scores = \
+            Score.query(Score.won == True).order(
+                Score.misses).order(-Score.difficulty)
+        scores = scores.fetch(limit=request.number_of_results)
         return ScoreForms(items=[score.to_form() for score in scores])
 
     @endpoints.method(request_message=USER_REQUEST,
