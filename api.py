@@ -83,25 +83,26 @@ class HangmanApi(remote.Service):
     def make_move(self, request):
         """Makes a move. Returns a game state with message"""
         game = get_by_urlsafe(request.urlsafe_game_key, Game)
+        guess = request.guess.lower()
         if game.game_over:
             return game.to_form('Game already over!')
         else:
-            if not len(request.guess) == 1:
+            if not len(guess) == 1:
                 return game.to_form('Turn failed: Exactly 1 character '
                                     'must be entered!')
-            elif not request.guess.isalpha():
+            elif not guess.isalpha():
                 return game.to_form('Turn failed: non-alphabetic character '
                                     'entered!')
-            elif request.guess in game.missed_letters or request.guess \
+            elif guess in game.missed_letters or guess \
                     in game.guessed_word:
                 return game.to_form('Turn failed: that letter was already '
                                     'guessed!')
             guessed_word_list = list(game.guessed_word)
-            if request.guess in game.secret_word:
+            if guess in game.secret_word:
                 message = 'That letter is in the word!'
                 # Add the letter to guessed_word in place of dashes
                 for index, ch in enumerate(game.secret_word):
-                    if ch == request.guess:
+                    if ch == guess:
                         guessed_word_list[index] = ch
                 game.guessed_word = ''.join(guessed_word_list)
                 # End the game if the user guessed the full secret word
@@ -111,7 +112,7 @@ class HangmanApi(remote.Service):
                                % game.secret_word
             else:  # the user guessed a letter NOT in the secret word
                 game.misses_left -= 1
-                game.missed_letters += request.guess
+                game.missed_letters += guess
                 message = 'The letter you guessed is not in the word!'
             if game.misses_left < 1:
                 game.end_game(False)
