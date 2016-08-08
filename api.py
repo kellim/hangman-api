@@ -4,7 +4,7 @@ from protorpc import remote, messages
 
 from models import User, Game, Score
 from models import (StringMessage, NewGameForm, GameForm, MakeMoveForm,
-                    ScoreForm, ScoreForms, UserGameForms)
+                    ScoreForms, UserGameForms, UserRankingForms)
 from utils import get_by_urlsafe
 
 
@@ -21,6 +21,7 @@ CANCEL_GAME_REQUEST = endpoints.ResourceContainer(
 HIGH_SCORES_REQUEST = endpoints.ResourceContainer(
     number_of_results=messages.IntegerField(1))
 
+
 @endpoints.api(name='hangman', version='v1')
 class HangmanApi(remote.Service):
     """Game API"""
@@ -34,7 +35,8 @@ class HangmanApi(remote.Service):
         if User.query(User.name == request.user_name).get():
             raise endpoints.ConflictException(
                 'A User with that name already exists!')
-        user = User(name=request.user_name, email=request.email)
+        user = User(name=request.user_name, email=request.email, wins=0,
+                    total_games=0, won_games_difficulty=0, misses=0)
         user.put()
         return StringMessage(message='User {} created!'.format(
             request.user_name))
@@ -55,7 +57,6 @@ class HangmanApi(remote.Service):
         except ValueError:
             raise endpoints.BadRequestException('Allowed misses must be '
                                                 ' between 6 and 10!')
-
         return game.to_form('Enjoy playing Hangman!')
 
     @endpoints.method(request_message=GET_GAME_REQUEST,
@@ -131,7 +132,7 @@ class HangmanApi(remote.Service):
         scores = Score.query(Score.user == user.key)
         return ScoreForms(items=[score.to_form() for score in scores])
 
-    @endpoints.method(request_message= HIGH_SCORES_REQUEST,
+    @endpoints.method(request_message=HIGH_SCORES_REQUEST,
                       response_message=ScoreForms,
                       path='scores/high',
                       name='get_high_scores',
@@ -143,6 +144,25 @@ class HangmanApi(remote.Service):
                 Score.misses).order(-Score.difficulty)
         scores = scores.fetch(limit=request.number_of_results)
         return ScoreForms(items=[score.to_form() for score in scores])
+
+    @endpoints.method(request_message=HIGH_SCORES_REQUEST,
+                      response_message=UserRankingForms,
+                      path='scores/user-rankings',
+                      name='get_user_rankings',
+                      http_method='GET')
+    def get_user_rankings(self, request):
+        """Returns user rankings list"""
+        # Users must have completed at least one game to be in the
+        # rankings list. Ranking list is sorted by the win ratio,
+        # then by the average number of misses and finally average
+        # difficulty (which is not selected by user, so not placing
+        # much importance on difficulty for now.)
+        users = \
+            User.query(User.win_ratio != None).order(-User.win_ratio).order(
+                User.avg_misses).order(-User.avg_won_difficulty)
+        users = users.fetch(limit=request.number_of_results)
+        return UserRankingForms(
+            items=[user.to_rankings_form() for user in users])
 
     @endpoints.method(request_message=USER_REQUEST,
                       response_message=UserGameForms,

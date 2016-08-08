@@ -9,6 +9,23 @@ class User(ndb.Model):
     """User profile"""
     name = ndb.StringProperty(required=True)
     email = ndb.StringProperty()
+    wins = ndb.IntegerProperty(required=True, default=0)
+    total_games = ndb.IntegerProperty(required=True, default=0)
+    win_ratio = ndb.FloatProperty()
+    won_games_difficulty = ndb.IntegerProperty(required=True, default=0)
+    avg_won_difficulty = ndb.FloatProperty()
+    misses = ndb.IntegerProperty(required=True, default=0)
+    avg_misses = ndb.FloatProperty()
+
+    def to_rankings_form(self):
+        """Returns a UserRankingForm representation of the Game"""
+        return UserRankingForm(
+            user_name=self.name,
+            win_ratio=self.win_ratio,
+            avg_won_difficulty=self.avg_won_difficulty,
+            avg_misses=self.avg_misses,
+            wins=self.wins,
+            total_games=self.total_games)
 
 
 class Game(ndb.Model):
@@ -58,6 +75,17 @@ class Game(ndb.Model):
                       misses=self.allowed_misses - self.misses_left,
                       difficulty=self.difficulty)
         score.put()
+        user = User.query(User.key == self.user).get()
+        user.total_games += 1
+        user.misses += self.allowed_misses - self.misses_left
+        user.avg_misses = user.misses / float(user.total_games)
+        if won:
+            user.wins += 1
+            user.won_games_difficulty += self.difficulty
+            user.avg_won_difficulty = \
+                user.won_games_difficulty / float(user.wins)
+        user.win_ratio = user.wins / float(user.total_games)
+        user.put()
 
     @staticmethod
     def generate_word_list():
@@ -71,6 +99,8 @@ class Game(ndb.Model):
     @staticmethod
     def check_word_difficulty(secret_word):
         """ Return a word difficulty score"""
+        # Note that users cannot choose difficulty, so it is only
+        # used as a tie breaker in high score and user rankings lists.
         # Add 1 to difficulty for each unique letter
         unique_letters = ''.join(set(secret_word))
         difficulty = len(unique_letters)
@@ -138,6 +168,22 @@ class ScoreForms(messages.Message):
 class UserGameForms(messages.Message):
     """Returns multiple GameForms for a specific user"""
     items = messages.MessageField(GameForm, 1, repeated=True)
+
+
+class UserRankingForm(messages.Message):
+    """Return User Rankings"""
+    user_name = messages.StringField(1, required=True)
+    win_ratio = messages.FloatField(2, required=True)
+    wins = messages.IntegerField(3, required=True)
+    total_games = messages.IntegerField(4, required=True)
+    avg_won_difficulty = messages.FloatField(5)
+    avg_misses = messages.FloatField(6)
+
+
+class UserRankingForms(messages.Message):
+    """Return multiple UserRankingForms"""
+    items = messages.MessageField(UserRankingForm, 1, repeated=True)
+
 
 class StringMessage(messages.Message):
     """StringMessage-- outbound (single) string message"""
