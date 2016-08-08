@@ -107,14 +107,16 @@ class HangmanApi(remote.Service):
                 # End the game if the user guessed the full secret word
                 if game.guessed_word == game.secret_word:
                     game.end_game(True)
-                    message += ' You win!'
+                    message += ' You win! The secret word is %s.' \
+                               % game.secret_word
             else:  # the user guessed a letter NOT in the secret word
                 game.misses_left -= 1
                 game.missed_letters += request.guess
                 message = 'The letter you guessed is not in the word!'
             if game.misses_left < 1:
                 game.end_game(False)
-                message += ' You lost!'
+                message += ' You lost! The secret word was %s.' \
+                           % game.secret_word
             game.put()
             return game.to_form(message)
 
