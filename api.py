@@ -87,8 +87,8 @@ class HangmanApi(remote.Service):
             return game.to_form('Game already over!')
         else:
             if not len(request.guess) == 1:
-                return game.to_form('Turn failed: more than 1 character '
-                                    'entered!')
+                return game.to_form('Turn failed: Exactly 1 character '
+                                    'must be entered!')
             elif not request.guess.isalpha():
                 return game.to_form('Turn failed: non-alphabetic character '
                                     'entered!')
