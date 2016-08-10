@@ -38,6 +38,8 @@ class Game(ndb.Model):
     misses_left = ndb.IntegerProperty(required=True, default=6)
     game_over = ndb.BooleanProperty(required=True, default=False)
     user = ndb.KeyProperty(required=True, kind='User')
+    turn_history = ndb.PickleProperty(default=[])
+
 
     @classmethod
     def new_game(cls, user, allowed_misses):

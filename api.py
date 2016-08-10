@@ -1,5 +1,7 @@
 import logging
 import endpoints
+import json
+from collections import OrderedDict
 from protorpc import remote, messages
 
 from models import User, Game, Score
@@ -99,7 +101,7 @@ class HangmanApi(remote.Service):
                                     'guessed!')
             guessed_word_list = list(game.guessed_word)
             if guess in game.secret_word:
-                message = 'That letter is in the word!'
+                message = 'Guessed letter is in secret word!'
                 # Add the letter to guessed_word in place of dashes
                 for index, ch in enumerate(game.secret_word):
                     if ch == guess:
@@ -113,11 +115,18 @@ class HangmanApi(remote.Service):
             else:  # the user guessed a letter NOT in the secret word
                 game.misses_left -= 1
                 game.missed_letters += guess
-                message = 'The letter you guessed is not in the word!'
+                message = 'Guessed letter not in secret word!'
             if game.misses_left < 1:
                 game.end_game(False)
                 message += ' You lost! The secret word was %s.' \
                            % game.secret_word
+            # Save data for turn history. Used OrderedDict so it
+            # maintains the proper order.
+            history = OrderedDict()
+            history['guess'] = str(guess)
+            history['result'] = str(message)
+            history['word'] = str(game.guessed_word)
+            game.turn_history.append(history)
             game.put()
             return game.to_form(message)
 
@@ -197,5 +206,23 @@ class HangmanApi(remote.Service):
         else:
             game_to_cancel.key.delete()
             return StringMessage(message='Game has been cancelled!')
+
+    @endpoints.method(request_message=GET_GAME_REQUEST,
+                      response_message=StringMessage,
+                      path='game/history/{urlsafe_game_key}',
+                      name='get_game_history',
+                      http_method='GET')
+    def get_game_history(self, request):
+        game = get_by_urlsafe(request.urlsafe_game_key, Game)
+        if not game:
+            raise endpoints.NotFoundException('No game was found!')
+        elif not game.turn_history:
+            raise endpoints.NotFoundException('No history for this game was found!')
+        else:
+            # Convert turn history from OrderedDict to JSON.
+            history = json.dumps(game.turn_history)
+            # Remove the multiple \" added during JSON conversion
+            history = str(history).replace('\"', '')
+            return StringMessage(message=history)
 
 api = endpoints.api_server([HangmanApi])
