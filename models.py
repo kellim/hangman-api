@@ -49,7 +49,6 @@ class Game(ndb.Model):
     # to JSON before being returned by endpoint.
     turn_history = ndb.PickleProperty(default=[])
 
-
     @classmethod
     def new_game(cls, user, allowed_misses):
         """Creates a new game"""

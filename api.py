@@ -3,6 +3,8 @@ import endpoints
 import json
 from collections import OrderedDict
 from protorpc import remote, messages
+from google.appengine.api import memcache
+from google.appengine.api import taskqueue
 
 from models import User, Game, Score
 from models import (StringMessage, NewGameForm, GameForm, MakeMoveForm,
@@ -22,6 +24,7 @@ CANCEL_GAME_REQUEST = endpoints.ResourceContainer(
     urlsafe_game_key=messages.StringField(1))
 HIGH_SCORES_REQUEST = endpoints.ResourceContainer(
     number_of_results=messages.IntegerField(1))
+MEMCACHE_MISSES_REMAINING = 'MISSES REMAINING'
 
 
 @endpoints.api(name='hangman', version='v1')
@@ -59,7 +62,12 @@ class HangmanApi(remote.Service):
         except ValueError:
             raise endpoints.BadRequestException('Allowed misses must be '
                                                 ' between 6 and 10!')
+        # Use a task queue to update the average misses remaining.
+        # This operation is not needed to complete the creation of a new game
+        # so it is performed out of sequence.
+        taskqueue.add(url='/tasks/cache_average_misses')
         return game.to_form('Enjoy playing Hangman!')
+
 
     @endpoints.method(request_message=GET_GAME_REQUEST,
                       response_message=GameForm,
@@ -230,5 +238,25 @@ class HangmanApi(remote.Service):
             # Remove the multiple \" added during JSON conversion
             history = str(history).replace('\"', '')
             return StringMessage(message=history)
+
+    @endpoints.method(response_message=StringMessage,
+                      path='games/average_misses',
+                      name='get_average_misses_remaining',
+                      http_method='GET')
+    def get_average_misses(self, request):
+        """Get the cached average misses remaining"""
+        return StringMessage(message=memcache.get(MEMCACHE_MISSES_REMAINING) or '')
+
+    @staticmethod
+    def _cache_average_misses():
+        """Populates memcache with the average misses remaining for Games"""
+        games = Game.query(Game.game_over == False).fetch()
+        if games:
+            count = len(games)
+            total_misses_remaining = sum([game.misses_left
+                                        for game in games])
+            average = float(total_misses_remaining)/count
+            memcache.set(MEMCACHE_MISSES_REMAINING,
+                         'The average misses remaining is {:.2f}'.format(average))
 
 api = endpoints.api_server([HangmanApi])
