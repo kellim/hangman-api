@@ -6,7 +6,7 @@ from google.appengine.ext import ndb
 
 
 class User(ndb.Model):
-    """User profile"""
+    """User Profile"""
     name = ndb.StringProperty(required=True)
     email = ndb.StringProperty()
     wins = ndb.IntegerProperty(required=True, default=0)
@@ -18,7 +18,7 @@ class User(ndb.Model):
     avg_misses = ndb.FloatProperty()
 
     def to_rankings_form(self):
-        """Returns a UserRankingForm representation of the Game"""
+        """Returns UserRankingForm representation of user rankings."""
         return UserRankingForm(
             user_name=self.name,
             win_ratio=self.win_ratio,
@@ -32,17 +32,27 @@ class Game(ndb.Model):
     """Game Object"""
     allowed_misses = ndb.IntegerProperty(required=True, default=6)
     secret_word = ndb.StringProperty(required=True)
+    # difficulty is not selectable, so for now it is only used as
+    # a tiebreaker in high scores and user rankings.
     difficulty = ndb.IntegerProperty(required=True)
+    # guessed_word is the word as seen by the user which will
+    # have dashes for letters that have not been guessed yet.
     guessed_word = ndb.StringProperty(required=True)
     missed_letters = ndb.StringProperty(required=True, default='')
+    # misses can be between 6 and 10. 6 is default so the frontend
+    # could represent head, body, 2 arms and 2 legs for the hangman
+    # picture. At 10 you could add hands and feet.
     misses_left = ndb.IntegerProperty(required=True, default=6)
     game_over = ndb.BooleanProperty(required=True, default=False)
     user = ndb.KeyProperty(required=True, kind='User')
+    # turn_history will be array of OrderedDicts and converted
+    # to JSON before being returned by endpoint.
     turn_history = ndb.PickleProperty(default=[])
 
 
     @classmethod
     def new_game(cls, user, allowed_misses):
+        """Creates a new game"""
         if allowed_misses < 6 or allowed_misses > 10:
             raise ValueError('Allowed misses must be between 6 and 10')
         secret_word = random.choice(Game.generate_word_list())
@@ -58,7 +68,7 @@ class Game(ndb.Model):
         return game
 
     def to_form(self, message):
-        """Retuns a GameForm representation of the Game"""
+        """Retuns a GameForm representation of the Game."""
         form = GameForm()
         form.urlsafe_key = self.key.urlsafe()
         form.user_name = self.user.get().name
@@ -70,6 +80,7 @@ class Game(ndb.Model):
         return form
 
     def end_game(self, won=False):
+        """Ends the game."""
         self.game_over = True
         self.put()
         # Add the game to the score 'board'
@@ -78,6 +89,7 @@ class Game(ndb.Model):
                       difficulty=self.difficulty)
         score.put()
         user = User.query(User.key == self.user).get()
+        # Add data to User Object for ranking users.
         user.total_games += 1
         user.misses += self.allowed_misses - self.misses_left
         user.avg_misses = user.misses / float(user.total_games)
@@ -91,6 +103,7 @@ class Game(ndb.Model):
 
     @staticmethod
     def generate_word_list():
+        """Returns secret word list."""
         word_list = []
         with open('words.csv', 'r') as f:
             reader = csv.reader(f)
@@ -100,9 +113,7 @@ class Game(ndb.Model):
 
     @staticmethod
     def check_word_difficulty(secret_word):
-        """ Return a word difficulty score"""
-        # Note that users cannot choose difficulty, so it is only
-        # used as a tie breaker in high score and user rankings lists.
+        """ Returns a word difficulty score."""
         # Add 1 to difficulty for each unique letter
         unique_letters = ''.join(set(secret_word))
         difficulty = len(unique_letters)
@@ -118,6 +129,7 @@ class Game(ndb.Model):
 
 
 class Score(ndb.Model):
+    """Score Object"""
     user = ndb.KeyProperty(required=True, kind='User')
     date = ndb.DateProperty(required=True)
     won = ndb.BooleanProperty(required=True)
@@ -144,7 +156,7 @@ class GameForm(messages.Message):
 
 
 class MakeMoveForm(messages.Message):
-    """Used to make a move in an existing game"""
+    """Used to make a move in an existing game."""
     guess = messages.StringField(1, required=True)
 
 
@@ -157,23 +169,23 @@ class ScoreForm(messages.Message):
 
 
 class NewGameForm(messages.Message):
-    """Used to create a new game"""
+    """Used to create a new game."""
     user_name = messages.StringField(1, required=True)
     allowed_misses = messages.IntegerField(2, default=6)
 
 
 class ScoreForms(messages.Message):
-    """Return multiple ScoreForms"""
+    """Return multiple ScoreForms."""
     items = messages.MessageField(ScoreForm, 1, repeated=True)
 
 
 class UserGameForms(messages.Message):
-    """Returns multiple GameForms for a specific user"""
+    """Returns multiple GameForms for a specific user."""
     items = messages.MessageField(GameForm, 1, repeated=True)
 
 
 class UserRankingForm(messages.Message):
-    """Return User Rankings"""
+    """Return User Rankings."""
     user_name = messages.StringField(1, required=True)
     win_ratio = messages.FloatField(2, required=True)
     wins = messages.IntegerField(3, required=True)
@@ -183,7 +195,7 @@ class UserRankingForm(messages.Message):
 
 
 class UserRankingForms(messages.Message):
-    """Return multiple UserRankingForms"""
+    """Return multiple UserRankingForms."""
     items = messages.MessageField(UserRankingForm, 1, repeated=True)
 
 
