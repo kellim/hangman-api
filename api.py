@@ -37,9 +37,18 @@ class HangmanApi(remote.Service):
                       http_method='POST')
     def create_user(self, request):
         """Create a User. Requires a unique username."""
-        if User.query(User.name == request.user_name).get():
+        if not request.user_name:
+            raise endpoints.BadRequestException(
+                'Username is required!')
+        elif User.query(User.name == request.user_name).get():
             raise endpoints.ConflictException(
                 'A User with that name already exists!')
+        elif not request.user_name.isalnum():
+            raise endpoints.BadRequestException(
+                'Username must be alphanumeric!')
+        elif len(request.user_name) < 3:
+            raise endpoints.BadRequestException(
+                'Username must be at least 3 characters!')
         user = User(name=request.user_name, email=request.email, wins=0,
                     total_games=0, won_games_difficulty=0, misses=0)
         user.put()
