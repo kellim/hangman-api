@@ -68,7 +68,6 @@ class HangmanApi(remote.Service):
         taskqueue.add(url='/tasks/cache_average_misses')
         return game.to_form('Enjoy playing Hangman!')
 
-
     @endpoints.method(request_message=GET_GAME_REQUEST,
                       response_message=GameForm,
                       path='game/{urlsafe_game_key}',
@@ -93,20 +92,23 @@ class HangmanApi(remote.Service):
     def make_move(self, request):
         """Makes a move. Returns a game state with message."""
         game = get_by_urlsafe(request.urlsafe_game_key, Game)
-        guess = request.guess.lower()
+        if not game:
+            raise endpoints.NotFoundException('No game was found!')
         if game.game_over:
-            return game.to_form('Game already over!')
+            raise endpoints.NotFoundException('That game is already over. '
+                                              'Please enter an active game!')
         else:
+            guess = request.guess.lower()
             if not len(guess) == 1:
-                return game.to_form('Turn failed: Exactly 1 character '
-                                    'must be entered!')
+                raise endpoints.BadRequestException(
+                    'Exactly 1 character must be entered!')
             elif not guess.isalpha():
-                return game.to_form('Turn failed: non-alphabetic character '
-                                    'entered!')
-            elif guess in game.missed_letters or guess \
-                    in game.guessed_word:
-                return game.to_form('Turn failed: that letter was already '
-                                    'guessed!')
+                raise endpoints.BadRequestException(
+                    'Non-alphabetic character entered!')
+            elif guess in game.missed_letters or guess in game.guessed_word:
+                        return game.to_form('That letter was already '
+                                            'guessed. Try a different '
+                                            'letter!')
             # Converting guessed_word to list lets you easily replace
             # dashes with correctly guessed letters.
             guessed_word_list = list(game.guessed_word)
@@ -209,15 +211,15 @@ class HangmanApi(remote.Service):
                       http_method='PUT')
     def cancel_game(self, request):
         """Cancel game by deleting it from datastore."""
-        game_to_cancel = get_by_urlsafe(request.urlsafe_game_key, Game)
-        if not game_to_cancel:
+        game = get_by_urlsafe(request.urlsafe_game_key, Game)
+        if not game:
             raise endpoints.NotFoundException(
-                'That game does not exist!'
+                'No game was found!'
             )
-        if game_to_cancel.game_over:
+        if game.game_over:
             return StringMessage(message='Failed to cancel: Game already over!')
         else:
-            game_to_cancel.key.delete()
+            game.key.delete()
             return StringMessage(message='Game has been cancelled!')
 
     @endpoints.method(request_message=GET_GAME_REQUEST,
