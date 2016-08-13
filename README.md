@@ -11,13 +11,14 @@ It uses/adapts some [skeleton code from Udacity's Guess a Number game]
 1.  Update the value of `application` in `app.yaml.config` to the app ID you have 
     registered in the App Engine admin console and would like to use to host your 
     instance of this sample, then rename it to `app.yaml`.
+1. (Optional) Update the words.csv file with words you would like to use in
+   the game. Currently it has developer/programming terms like instantiation, loop,
+   quicksort, and statement.
 1.  Run the app with the devserver using `dev_appserver.py DIR`, and ensure it's
     running by visiting the API Explorer - by default `localhost:8080/_ah/api/explorer`.
 1.  (Optional) Generate your client library(ies) with the endpoints tool.
     Deploy your application.
-1. (Optional) Update the words.csv file with words you would like to use in
-   the game. Currently it has developer/programming terms like instantiation, loop,
-   quicksort, and statement.
+
 
 ##Game Description:
 Each game begins with a secret word chosen by the app, and the user will have
