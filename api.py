@@ -263,7 +263,7 @@ class HangmanApi(remote.Service):
         if games:
             count = len(games)
             total_misses_remaining = sum([game.misses_left
-                                        for game in games])
+                                         for game in games])
             average = float(total_misses_remaining)/count
             memcache.set(MEMCACHE_MISSES_REMAINING,
                          'The average misses remaining is {:.2f}'.format(average))
