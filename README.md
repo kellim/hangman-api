@@ -11,6 +11,9 @@ It uses/adapts some [skeleton code from Udacity's Guess a Number game]
 1.  Update the value of `application` in `app.yaml.config` to the app ID you have 
     registered in the App Engine admin console and would like to use to host your 
     instance of this sample, then rename it to `app.yaml`.
+1. (Optional) Update the words.csv file with words you would like to use in
+   the game. Currently it has developer/programming terms like instantiation, loop,
+   quicksort, and statement.
 1.  Run the app with the devserver using `dev_appserver.py DIR`, and ensure it's
     running by visiting the API Explorer - by default `localhost:8080/_ah/api/explorer`.
 1.  (Optional) Generate your client library(ies) with the endpoints tool.
@@ -31,7 +34,7 @@ Guesses will be sent to the `make_move` endpoint which will reply with a message
 "Guessed letter not in secret word!" or "Guessed letter is in secret word!" If they win
 or lose the game, that will be added to the message, along with what the secret word
 was. Also, if they provide invalid data, they will get a message informing them of the 
-issue, and will need to try again.<br><br>
+issue, and will need to try again.
 
 In addition to a message, the `make_move` endpoint will also return game data such as the
 partially revealed word with dashes for blanks, a string of missed letters, and how many
