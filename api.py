@@ -223,8 +223,7 @@ class HangmanApi(remote.Service):
         game = get_by_urlsafe(request.urlsafe_game_key, Game)
         if not game:
             raise endpoints.NotFoundException(
-                'No game was found!'
-            )
+                'No game was found!')
         if game.game_over:
             return StringMessage(message='Failed to cancel: Game already over!')
         else:
