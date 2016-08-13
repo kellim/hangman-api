@@ -1,0 +1,105 @@
+This is a text file required by Udacity to answer some questions about the project.
+
+What additional properties did you add to your models and why?
+
+I added the following properties to the User model to use with the get_user_rankings
+endpoint:
+
+* wins - the amount of wins a user has is used to calculate win_ratio, which is the
+first criteria users are ranked by. It's also used to calculate avg_won_difficulty.
+
+* total_games - this is the total amount of games the user has played and completed,
+and is used to calculate win_ratio and avg_misses.
+
+* win_ratio - users are ranked by win_ratio, which is wins divided by total_games.
+
+* misses - the total amount of misses the user has made in completed games, used to
+compute avg_misses.
+
+* avg_misses - used as the # 2 criteria to rank users in the get_user_rankings endpoint.
+
+* won_games_difficulty - this is the total difficulty of all the secret words in
+games that the user won. It is needed to calculate avg_won_difficulty.
+
+* avg_won_difficulty - this is the average difficulty of secret words in games that
+were won, and is calculated as won_games_difficulty divided by wins. Difficulty is
+used only as the #3 (last) criteria to rank users, because in each game the user
+gets a random secret word and doesn't get to choose the difficulty.
+
+I added the following properties to the Game model:
+
+* allowed_misses - I wanted to be a little flexible in how many misses are allowed since
+this is a hangman game, so I decided to let the API user decide how many misses they want
+in the game. With 6 misses, in a hangman game you'd be drawing the head, body, two arms and
+two legs. Some people like to draw arms and hands in addition which would be 10 misses. They
+can also probably think of combinations between 6 and 10 like including some facial features.
+I think any more than 10 allowed misses would make the game too easy.
+
+* secret_word - In hangman, the secret word is necessary to play the game.
+
+* difficulty - I added difficulty to use as a tiebreaker for calculating high scores and user
+rankings. The user doesn't choose this, each word is given a calculated value for difficulty so
+not much importance is currently placed on it, but it is an interesting statistic that the
+Front-end can either show the user or not show the user, as some users might not like being ranked
+even a little on luck of the draw in getting easy or hard words.
+
+* guessed_word - This is important to have as it is the word as guessed by the user so far. It will
+have dashes for blanks when the user hasn't guessed that letter yet. At the beginning of the game,
+it will be all dashes and lets the user see how many characters are in the word.
+
+* missed_letters - It's important to have a string of missed letters in the hangman game so you can
+remember what you have already guessed.
+
+* turn_history - This is needed to store history for each turn which is used in the get_game_history
+endpoint.
+
+Added the following properties to the Score Model:
+
+* misses - instead of guesses, misses were counted because if a guessed letter is in the secret
+word, it shouldn't count against you.
+* difficulty - added as a tiebreaker used in scoring.
+
+
+What were some of the trade-offs or struggles you faced when implementing the new game logic?
+
+* Should the secret word let you have multiple words like a phrase, or full name, or perhaps
+a word with a hyphen in it? I was not sure what to do with spaces or hyphens and decided to
+leave that for a future "TODO" and kept things simple by only allowing single words without
+hyphens so that I can focus my energy on how to create the endpoints, which is the main point
+of the project. As I'm writing this, I also just realized that if I do allow hyphens in secret
+words later, I'll need to use something besides dashes to represent blanks in words because
+hyphens are dashes. Perhaps underscores with spaces would work.
+
+* Creating a word list - I wasn't sure if I should put the secret word list in the data store,
+or hard code it in a list in the code, or put it in a file. Having a list in the code
+would mean a lot of formatting work. I ended up going with a csv file because it would be
+very easy to update it with new words, or to extend the app in the future by having a csv
+file for different categories of words, letting the user pick a category they wanted a
+word from each time the play the game.
+
+* Storing missed letters came up and I thought about how when you play Hangman on paper, you
+just write out the letters that were misses. I thought about storing it in a list in code,
+but you would have to store this list in the datastore as a PickleProperty since you would
+lose what was in the list on each turn unless saved somewhere.
+It seemed simpler to just store these in the datastore as one string because you can
+easily search for letters in a string.
+
+* I also needed a way to keep track of the word as guessed so far. I decided on a string like
+I did for missed letters, since it's easy to store it as a string in datastore.
+However, I do temporarily create an list holding letters and dashes (representing
+blanks in the word for letters that haven't been guessed yet).
+This makes it easy to replace the dashes with correctly guessed letters.
+
+* One thing I struggled with for a long time was user rankings, because where do you store
+the data? Being used to relational databases, it was hard to get past being able to only
+query one table at a time in datastore. In the end, what worked is storing this data in the
+user table, which may not be the best way to do it. I would be happy to hear any feedback on
+where to store this data.
+
+* In implementing the high scores endpoint, I realized I'd need some extra ranking criteria
+because the score is how many misses you had in a word. I assigned each word a difficulty
+and used that as a tiebreaker. I also decided to use difficulty as the #3 criteria in user
+ranking after win ratio and average amount of misses. I'm not 100% happy with using
+difficulty when the user doesn't choose it, but perhaps in the future I will let them
+choose how difficult they want the word to be. Many more words will need to be added first
+so there is a big  enough word list to choose from at each difficulty level.
