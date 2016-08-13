@@ -143,29 +143,35 @@ given time. Each game can be retrieved or played by using the path parameter
     - Method: PUT
     - Parameters: urlsafe_game_key
     - Returns: StringMessage
-    - Description: Cancels game by deleting it from the datastore and returns the message "Game has been cancelled!" if successful. Will raise a NotFoundException if the Game does not exist. If the Game is already over, it cannot be cancelled and it will return the message "Failed to cancel: Game already over!" 
+    - Description: Cancels game by deleting it from the datastore and returns the message
+    "Game has been cancelled!" if successful. Will raise a NotFoundException if the Game
+    does not exist. If the Game is already over, it cannot be cancelled and it will return
+    the message "Failed to cancel: Game already over!" 
  
  - **get_user_rankings**
     - Path: 'scores/user-rankings'
     - Method: GET
     - Parameters: number_of_results (optional)
     - Returns: UserRankingForms
-    - Description: Returns a list of ranked users (who have completed at least one game) with up to `number_of_results`
-    results. The user with the highest ranking will be listed first, and the list will continue in descending order of
-    ranked users. 
+    - Description: Returns a list of ranked users (who have completed at least one game)
+    with up to `number_of_results` results. The user with the highest ranking will be 
+    listed first, the user with the second highest ranking will be listed second, and
+    so on.
 
  - **get_game_history**
     - Path: 'game/history/{urlsafe_game_key}'
     - Method: GET
     - Parameters: urlsafe_game_key
     - Returns: StringMessage
-    - Description: Returns a list of Turn History for the game as the message, which for each turn includes the guess,
-    result, and the word guessed so far with blanks (dashes) for letters yet to be guessed. Will raise a 
-    NotFoundException if the Game does not exist or the Game is new and has no history yet.
+    - Description: Returns a list of Turn History for the game as the message, which for 
+    each turn includes the guess, result, and the word guessed so far with blanks (dashes)
+    for letters yet to be guessed. Will raise a NotFoundException if the Game does not exist
+   or the Game is new and has no history yet.
 
 ##Models Included:
  - **User**
-    - Stores unique user_name and (optional) email address as well as some stats to determine user rankings.
+    - Stores unique user_name and (optional) email address as well as some stats to 
+    determine user rankings.
     
  - **Game**
     - Stores unique game states. Associated with User model via KeyProperty.
@@ -175,8 +181,8 @@ given time. Each game can be retrieved or played by using the path parameter
 
 ##Forms Included:
  - **GameForm**
-    - Representation of a Game's state (urlsafe_key, misses_left, missed_letters, guessed_word,
-    game_over flag, message, user_name).
+    - Representation of a Game's state (urlsafe_key, misses_left, missed_letters, 
+    guessed_word, game_over flag, message, user_name).
  - **UserGameForms**
     - Multiple GameForm container used to return multiple GameForms for a specific user.
  - **NewGameForm**
@@ -189,7 +195,8 @@ given time. Each game can be retrieved or played by using the path parameter
  - **ScoreForms**
     - Multiple ScoreForm container.
  - **UserRankingForm**
-    - Representation of a user who is being ranked against other users by their completed game stats (user_name, win_ratio, wins, total_games, avg_won_difficulty, avg_misses).
+    - Representation of a user who is being ranked against other users by their 
+    completed game stats (user_name, win_ratio, wins, total_games, avg_won_difficulty, avg_misses).
  - **UserRankingForms**
     - Multiple UserRankingForm container.
  - **StringMessage**
