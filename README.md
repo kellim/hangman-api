@@ -47,6 +47,22 @@ Many different Hangman games can be played by many different users at any
 given time. Each game can be retrieved or played by using the path parameter
 `urlsafe_game_key`.
 
+## Score Keeping
+
+Your main score for a game is how many misses you made while playing the game. The 
+`get_high_scores` endpoint displays scores for games sorted by the least amount of 
+misses that were made during the game, then it uses word difficulty as the tiebreaker. 
+Word difficulty is a number assigned to each word based on how difficult the word is, 
+and difficulty is currently not selectable by the user when playing the game.
+
+Users are then ranked in the `get_user_rankings` endpoint by win ratio (the amount of games
+won divided by total number of games played), then by the average number of misses they
+made in games played (the total amount of misses made divided by total number of games played),
+with the final tiebreaker users are ranked by being word difficulty.
+
+
+
+
 ##Files Included:
  - `api.py`: Contains endpoints and game playing logic.
  - `app.yaml`: App configuration.
