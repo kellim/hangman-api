@@ -15,6 +15,9 @@ It uses/adapts some [skeleton code from Udacity's Guess a Number game]
     running by visiting the API Explorer - by default `localhost:8080/_ah/api/explorer`.
 1.  (Optional) Generate your client library(ies) with the endpoints tool.
     Deploy your application.
+1. You can optionally update the words.csv file with words you would like to use in
+   the game. Currently it has developer/programming terms like instantiation, loop,
+   quicksort, and statement.
 
 ##Game Description:
 Each game begins with a secret word chosen by the app, and the user will have
