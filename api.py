@@ -1,4 +1,3 @@
-import logging
 import endpoints
 import json
 from collections import OrderedDict
