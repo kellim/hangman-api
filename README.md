@@ -8,7 +8,7 @@ It uses/adapts some [skeleton code from Udacity's Guess a Number game]
 (https://github.com/udacity/FSND-P4-Design-A-Game).
 
 ## Set-Up Instructions:
-1.  Update the value of `application` in `app.yaml to the app ID you have 
+1.  Update the value of `application` in `app.yaml` to the app ID you have 
     registered in the App Engine admin console and would like to use to host your 
     instance of this sample.
 1. (Optional) Update the words.csv file with words you would like to use in
