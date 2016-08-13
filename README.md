@@ -19,7 +19,6 @@ It uses/adapts some [skeleton code from Udacity's Guess a Number game]
 1.  (Optional) Generate your client library(ies) with the endpoints tool.
     Deploy your application.
 
-
 ##Game Description:
 Each game begins with a secret word chosen by the app, and the user will have
 to guess the word within the amount of allowed misses. An amount of 6 to 10
@@ -35,7 +34,7 @@ Guesses will be sent to the `make_move` endpoint which will reply with a message
 "Guessed letter not in secret word!" or "Guessed letter is in secret word!" If they win
 or lose the game, that will be added to the message, along with what the secret word
 was. Also, if they provide invalid data, they will get a message informing them of the 
-issue, and will need to try again.<br><br>
+issue, and will need to try again.
 
 In addition to a message, the `make_move` endpoint will also return game data such as the
 partially revealed word with dashes for blanks, a string of missed letters, and how many
