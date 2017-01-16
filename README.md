@@ -2,8 +2,7 @@
 
 ## About
 This hangman backend uses Google App Engine and has endpoints for playing the 
-game and for information/statistics about games and scores. It is my submission 
-for the Design a Game project for Udacity's Full Stack Web Developer Nanodegree. 
+game and for information/statistics about games and scores. 
 It uses/adapts some [skeleton code from Udacity's Guess a Number game]
 (https://github.com/udacity/FSND-P4-Design-A-Game).
 
@@ -26,7 +25,7 @@ misses can be chosen before starting the game, with the default being 6.
 
 The `get_game` endpoint will provide the user with information needed to start the game.
 A string of dashes represents "blanks" in the word, or letters that have not been guessed
-correctly yet. Note that as a user guesses letters correctly, these blanks will be replaced
+correctly yet. As a user guesses letters correctly, these blanks will be replaced
 with the guessed letters. They will also be provided with how many misses are available, 
 which is how many times they can guess a wrong letter in the word.
 
