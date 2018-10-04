@@ -1,6 +1,6 @@
 # Hangman API
 
-This project was an API for a Hangman game created for Udacity's Full Stack Nanodegree, but due to some changes on Google's End, it is no longer working and will no be maintained.
+This project was an API for a Hangman game created for Udacity's Full Stack Nanodegree, but due to some changes on Google's End, it is no longer working and will not be maintained.
 <hr>
 This hangman backend uses Google App Engine and has endpoints for playing the 
 game and for information/statistics about games and scores. 
