@@ -1,10 +1,10 @@
 # Hangman API
 
-This project was an API for a Hangman game created for Udacity's Full Stack Nanodegree, but due to some changes on Google's End, it is no longer working and will not be maintained.
-<hr>
+This project was an API for a Hangman game created for Udacity's Full Stack Nanodegree, but due to some changes on Google's End, it is no longer working and will no longer be maintained.
+
 This hangman backend uses Google App Engine and has endpoints for playing the 
 game and for information/statistics about games and scores. 
-It uses/adapts some [skeleton code from Udacity's Guess a Number game](https://github.com/udacity/FSND-P4-Design-A-Game).
+It uses/adapts [skeleton code from Udacity](https://github.com/udacity/FSND-P4-Design-A-Game).
 
 ## Set-Up Instructions:
 1.  Update the value of `application` in `app.yaml` to the app ID you have 
